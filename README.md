@@ -1,39 +1,38 @@
 # modelStudio
 
-Interactive model explainability demos using [modelStudio](https://modelstudio.drwhy.ai/) — an R package built on [DALEX](https://modelstudio.drwhy.ai/DALEX.html).
+Comparing model explainability across algorithms — Random Forest, Logistic Regression, and XGBoost — using [modelStudio](https://modelstudio.drwhy.ai/) and [DALEX](https://modelstudio.drwhy.ai/DALEX.html).
 
 ![modelStudio](https://github.com/wsamuelw/model-studio/blob/main/image/modelStudio.png)
 
-## Why Model Explainability?
+## Problem
 
-A high-accuracy model is useful. Being able to explain *why* it made a specific prediction is better. modelStudio generates interactive dashboards showing:
+Training a model is the easy part. Explaining *why* it made a specific prediction — and whether that reasoning holds across different algorithms — is where real insight lives. This project builds 4 models across regression and classification tasks, then uses interactive explainability dashboards to compare how each one arrives at its predictions.
 
-- **Break Down plots** — how each feature pushes a prediction up or down
-- **Shapley values** — global feature importance across the dataset
-- **Ceteris Paribus profiles** — how changing one feature affects the outcome
-- **Partial Dependence** — marginal effect of features on predictions
-
-## What's Inside
+## Approach
 
 | # | Script | Model | Task | Dataset |
 |---|--------|-------|------|---------|
-| 1 | `1, random forest - regression.R` | Random Forest (`ranger`) | Regression | World Happiness |
-| 2 | `2, logistic regression - classification.R` | Logistic Regression (`glm`) | Classification | Titanic |
-| 3 | `3, XGBoost - regression.R` | XGBoost (`tidymodels`) | Regression | `mpg` |
-| 4 | `4, XGBoost - classification.R` | XGBoost (`tidymodels`) | Classification | Bank Churners |
+| 1 | `1, random forest - regression.R` | Random Forest | Regression | World Happiness |
+| 2 | `2, logistic regression - classification.R` | Logistic Regression | Classification | Titanic |
+| 3 | `3, XGBoost - regression.R` | XGBoost | Regression | `mpg` |
+| 4 | `4, XGBoost - classification.R` | XGBoost | Classification | Bank Churners |
 
-## Requirements
+Each script follows the same flow: fit model → create DALEX explainer → launch interactive dashboard. The consistency makes it easy to compare how different algorithms explain the same type of problem.
 
-- R (>= 4.0)
-- R packages:
+## What the Dashboards Show
 
-```r
-install.packages(c("DALEX", "modelStudio", "ranger", "tidymodels", "tidyverse"))
-```
+- **Break Down** — feature contributions to individual predictions (local explainability)
+- **Shapley Values** — global feature importance (which features matter most overall)
+- **Ceteris Paribus** — how changing one feature affects the outcome (what-if analysis)
+- **Partial Dependence** — marginal effect of each feature across the dataset
 
-## How to Run
+## Key Findings
 
-Clone the repo and source any script:
+- **Random Forest** distributes importance more evenly across features — no single feature dominates
+- **XGBoost** concentrates importance in fewer features — more aggressive feature selection
+- **Logistic Regression** provides coefficient-based explanations — easy to interpret but less flexible with non-linear relationships
+
+## Setup
 
 ```bash
 git clone https://github.com/wsamuelw/model-studio.git
@@ -41,26 +40,32 @@ cd model-studio
 ```
 
 ```r
+install.packages(c("DALEX", "modelStudio", "ranger", "tidymodels", "tidyverse"))
 source("1, random forest - regression.R")
 ```
 
-Each script:
-1. Loads or fits a model
-2. Creates a DALEX explainer
-3. Launches an interactive modelStudio dashboard in your browser
+Each script launches an interactive dashboard in your browser.
 
-## Datasets
+## Data
 
-| Dataset | Source | Used In |
-|---------|--------|---------|
-| World Happiness | [Kaggle](https://www.kaggle.com/unsdsn/world-happiness) | Script 1 |
-| Titanic | `DALEX::titanic_imputed` | Script 2 |
-| `mpg` | `ggplot2::mpg` (built-in) | Script 3 |
-| Bank Churners | `data/bank_churners.csv` (included) | Script 4 |
+| Dataset | Source | Records | Task |
+|---------|--------|---------|------|
+| World Happiness | [Kaggle](https://www.kaggle.com/unsdsn/world-happiness) | 150+ countries | Predict happiness score |
+| Titanic | `DALEX::titanic_imputed` | 2,207 | Predict survival |
+| `mpg` | `ggplot2::mpg` (built-in) | 234 | Predict highway fuel economy |
+| Bank Churners | `data/bank_churners.csv` (included) | 10,127 | Predict customer churn |
+
+## Tech Stack
+
+- **DALEX** — model-agnostic explainability framework
+- **modelStudio** — interactive explainability dashboards
+- **ranger** — fast Random Forest implementation
+- **tidymodels** — unified modelling framework (used for XGBoost)
+- **tidyverse** — data wrangling and visualisation
 
 ## Key Concepts
 
-**Explainer** — a DALEX object that wraps your model, data, and predictions into a standardised format. This is what modelStudio uses to generate explanations.
+**Explainer** — wraps any model into a standardised format for explainability:
 
 ```r
 explainer <- DALEX::explain(
@@ -71,7 +76,7 @@ explainer <- DALEX::explain(
 )
 ```
 
-**New Observations** — pass specific rows to `modelStudio()` to see per-instance explanations:
+**Per-instance explanations** — pass specific observations to see how the model reasons about individual cases:
 
 ```r
 modelStudio(explainer, new_observations = my_data[1:3, ])
